@@ -22,7 +22,116 @@ void viewPreviousResults() {
 }
 
 // ==========================
-// Main Program (SEARCH REMOVED)
+// Search CGPA Records - FIXED VERSION
+// ==========================
+void searchCGPA() {
+    int searchChoice;
+    char searchID[50], searchName[100], line[256];
+    char currentRecord[1000] = "";
+    int found = 0;
+    int inRecord = 0;
+
+    printf("\n=========== SEARCH MENU ===========\n");
+    printf("1. Search by Student ID\n");
+    printf("2. Search by Student Name\n");
+    printf("Enter your choice (1-2): ");
+    scanf("%d", &searchChoice);
+
+    FILE *file = fopen("cgpa_output.txt", "r");
+    if (file == NULL) {
+        printf("\nNo previous CGPA records found!\n");
+        return;
+    }
+
+    if (searchChoice == 1) {
+        printf("\nEnter Student ID: ");
+        scanf(" %[^\n]", searchID);
+    } else if (searchChoice == 2) {
+        printf("\nEnter Student Name: ");
+        scanf(" %[^\n]", searchName);
+    } else {
+        printf("Invalid choice!\n");
+        fclose(file);
+        return;
+    }
+
+    printf("\n=========== SEARCH RESULTS ===========\n\n");
+
+    // Read file line by line
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "------------------------------------------")) {
+            if (inRecord) {
+                if (searchChoice == 1) {
+                    // Search by Student ID
+                    char *idPos = strstr(currentRecord, "Student ID: ");
+                    if (idPos != NULL) {
+                        char extractedID[50];
+                        sscanf(idPos, "Student ID: %s", extractedID);
+                        if (strcmp(extractedID, searchID) == 0) {
+                            printf("%s", currentRecord);
+                            printf("------------------------------------------\n");
+                            found = 1;
+                        }
+                    }
+                } else if (searchChoice == 2) {
+                    // Search by Student Name
+                    char *namePos = strstr(currentRecord, "Student Name: ");
+                    if (namePos != NULL) {
+                        char extractedName[100];
+                        sscanf(namePos, "Student Name: %[^\n]", extractedName);
+                        if (strcmp(extractedName, searchName) == 0) {
+                            printf("%s", currentRecord);
+                            printf("------------------------------------------\n");
+                            found = 1;
+                        }
+                    }
+                }
+            }
+            // Reset for new record
+            strcpy(currentRecord, "");
+            inRecord = 1;
+        } else if (inRecord) {
+            strcat(currentRecord, line);
+        }
+    }
+
+    // Check the last record in file (if any)
+    if (inRecord && strlen(currentRecord) > 0) {
+        if (searchChoice == 1) {
+            char *idPos = strstr(currentRecord, "Student ID: ");
+            if (idPos != NULL) {
+                char extractedID[50];
+                sscanf(idPos, "Student ID: %s", extractedID);
+                if (strcmp(extractedID, searchID) == 0) {
+                    printf("%s", currentRecord);
+                    printf("------------------------------------------\n");
+                    found = 1;
+                }
+            }
+        } else if (searchChoice == 2) {
+            char *namePos = strstr(currentRecord, "Student Name: ");
+            if (namePos != NULL) {
+                char extractedName[100];
+                sscanf(namePos, "Student Name: %[^\n]", extractedName);
+                if (strcmp(extractedName, searchName) == 0) {
+                    printf("%s", currentRecord);
+                    printf("------------------------------------------\n");
+                    found = 1;
+                }
+            }
+        }
+    }
+
+    if (!found) {
+        printf("No matching record found!\n");
+    }
+
+    printf("\n=======================================\n");
+    fclose(file);
+}
+
+// ==========================
+// Main Program (UNCHANGED)
 // ==========================
 int main() {
     int n, i, choice;
@@ -41,8 +150,9 @@ int main() {
         printf("=========================================\n");
         printf("1. Calculate New CGPA\n");
         printf("2. View Previous Results\n");
-        printf("3. Exit\n");   // changed from 4 to 3
-        printf("Enter your choice (1-3): ");
+        printf("3. Search Individual CGPA (Name or ID)\n");
+        printf("4. Exit\n");
+        printf("Enter your choice (1-4): ");
 
         if (scanf("%d", &choice) != 1) {
             printf("Invalid input! Please enter a valid number.\n");
@@ -50,13 +160,20 @@ int main() {
             continue;
         }
 
-        if (choice == 3) {    // exit option updated
+        if (choice == 4) {
             printf("\nExiting program... Goodbye!\n");
             break;
         }
 
         if (choice == 2) {
             viewPreviousResults();
+            printf("\nPress Enter to return to the main menu...");
+            getchar(); getchar();
+            continue;
+        }
+
+        if (choice == 3) {
+            searchCGPA();
             printf("\nPress Enter to return to the main menu...");
             getchar(); getchar();
             continue;
@@ -193,7 +310,7 @@ int main() {
             else if (cgpa >= 3.00) sprintf(grade, "B");
             else if (cgpa >= 2.50) sprintf(grade, "C");
             else if (cgpa >= 2.00) sprintf(grade, "D");
-            else sprintf(grade, "CA");
+            else sprintf(grade, "F");
 
             printf("\n================= RESULT =================\n");
             printf("Student Name: %s\n", studentName);
@@ -221,7 +338,7 @@ int main() {
             printf("\nPress Enter to return to the main menu...");
             getchar(); getchar();
         } else {
-            printf("Invalid choice! Please enter 1 to 3.\n");
+            printf("Invalid choice! Please enter 1 to 4.\n");
         }
     }
 
